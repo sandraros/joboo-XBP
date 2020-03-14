@@ -110,12 +110,14 @@ CLASS zcl_job_xbp DEFINITION
       FOR zif_job~set_server_group .
     ALIASES set_server_old
       FOR zif_job~set_server_old .
-    ALIASES start_after_event
-      FOR zif_job~start_after_event .
+    ALIASES set_successor_job
+      FOR zif_job~set_successor_job .
     ALIASES start_after_job
       FOR zif_job~start_after_job .
     ALIASES start_at
       FOR zif_job~start_at .
+    ALIASES start_at_event
+      FOR zif_job~start_at_event .
     ALIASES start_at_opmode_switch
       FOR zif_job~start_at_opmode_switch .
     ALIASES start_immediately
@@ -132,7 +134,6 @@ CLASS zcl_job_xbp DEFINITION
     DATA xmi TYPE REF TO zcl_xmi READ-ONLY .
     DATA extuser TYPE bapixmlogr-extuser READ-ONLY .
 
-    METHODS z .
     METHODS constructor
       IMPORTING
         !xmi     TYPE REF TO zcl_xmi
@@ -150,7 +151,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_JOB_XBP IMPLEMENTATION.
+CLASS zcl_job_xbp IMPLEMENTATION.
 
 
   METHOD add_step_abap.
@@ -159,7 +160,8 @@ CLASS ZCL_JOB_XBP IMPLEMENTATION.
           archive_parameters2 TYPE bapixmarch,
           allpripar           TYPE bapipripar,
           allarcpar           TYPE bapiarcpar,
-          free_selinfo        TYPE  rsdsrange_t_ssel.
+          free_selinfo        TYPE rsdsrange_t_ssel,
+          step_number         TYPE btcstepcnt.
 
     CALL FUNCTION 'BAPI_XBP_JOB_ADD_ABAP_STEP'
       DESTINATION me->xmi->rfcdest
@@ -298,10 +300,6 @@ CLASS ZCL_JOB_XBP IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD start_after_event.
-  ENDMETHOD.
-
-
   METHOD start_after_job.
   ENDMETHOD.
 
@@ -363,18 +361,14 @@ CLASS ZCL_JOB_XBP IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z.
-
-  ENDMETHOD.
-
-
   METHOD zif_job~add_step_external_command.
-    DATA: return  TYPE bapiret2,
-          program TYPE tbtcstep-program.
+    DATA: return      TYPE bapiret2,
+          program     TYPE tbtcstep-program,
+          step_number TYPE btcstepcnt.
 
     " TODO appeler SXPG_COMMAND_GET pour convertir COMMAND/OPERATING_SYSTEM en PROGRAM
 
-    zif_job~add_step_external_program(
+    job = zif_job~add_step_external_program(
       EXPORTING
         program              = program
         parameters           = parameters
@@ -384,16 +378,14 @@ CLASS ZCL_JOB_XBP IMPLEMENTATION.
         stderr_in_joblog     = abap_true
         stdout_in_joblog     = abap_true
         wait_for_termination = abap_false
-        user                 = sy-uname
-      RECEIVING
-        step_number          = step_number
-    ).
+        user                 = sy-uname ).
 
   ENDMETHOD.
 
 
   METHOD zif_job~add_step_external_program.
-    DATA: return TYPE bapiret2.
+    DATA: return      TYPE bapiret2,
+          step_number TYPE btcstepcnt.
 
     CALL FUNCTION 'BAPI_XBP_JOB_ADD_EXT_STEP'
       DESTINATION me->xmi->rfcdest
@@ -415,4 +407,13 @@ CLASS ZCL_JOB_XBP IMPLEMENTATION.
         OTHERS                 = 3.
 
   ENDMETHOD.
+
+  METHOD zif_job~set_successor_job.
+
+  ENDMETHOD.
+
+  METHOD zif_job~start_at_event.
+
+  ENDMETHOD.
+
 ENDCLASS.

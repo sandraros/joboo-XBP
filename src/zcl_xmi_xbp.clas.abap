@@ -1,14 +1,15 @@
-class ZCL_XMI_XBP definition
-  public
-  final
-  create public .
+CLASS zcl_xmi_xbp DEFINITION
+  INHERITING FROM zcl_xmi
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
-protected section.
-private section.
+  PUBLIC SECTION.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS ZCL_XMI_XBP IMPLEMENTATION.
+CLASS zcl_xmi_xbp IMPLEMENTATION.
 ENDCLASS.
