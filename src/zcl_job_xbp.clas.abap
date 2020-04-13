@@ -110,8 +110,6 @@ CLASS zcl_job_xbp DEFINITION
       FOR zif_job~set_server_group .
     ALIASES set_server_old
       FOR zif_job~set_server_old .
-    ALIASES set_successor_job
-      FOR zif_job~set_successor_job .
     ALIASES start_after_job
       FOR zif_job~start_after_job .
     ALIASES start_at
@@ -142,6 +140,7 @@ CLASS zcl_job_xbp DEFINITION
         !class   TYPE bapixmjob-jobclass OPTIONAL
       RAISING
         zcx_job .
+protected section.
   PRIVATE SECTION.
 
     METHODS close
@@ -151,17 +150,31 @@ ENDCLASS.
 
 
 
-CLASS zcl_job_xbp IMPLEMENTATION.
+CLASS ZCL_JOB_XBP IMPLEMENTATION.
 
 
   METHOD add_step_abap.
     DATA: return              TYPE bapiret2,
-          print_parameters2   TYPE bapixmprnt,
+          "print_parameters2   TYPE bapixmprnt,
           archive_parameters2 TYPE bapixmarch,
           allpripar           TYPE bapipripar,
           allarcpar           TYPE bapiarcpar,
           free_selinfo        TYPE rsdsrange_t_ssel,
           step_number         TYPE btcstepcnt.
+
+    DATA(print_parameters2) = CORRESPONDING bapixmprnt( print_parameters MAPPING
+        destin     = pdest
+        printimm   = primm
+        release    = prrel
+        copies     = prcop
+        priarcmode = armod
+        showpasswd = prber
+        sapbanner  = prsap
+        bannerpage = prbig
+        expiration = pexpi
+        printrecip = prrec
+        numlines   = linct
+        numcolumns = linsz ).
 
     CALL FUNCTION 'BAPI_XBP_JOB_ADD_ABAP_STEP'
       DESTINATION me->xmi->rfcdest
@@ -408,12 +421,8 @@ CLASS zcl_job_xbp IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zif_job~set_successor_job.
-
-  ENDMETHOD.
 
   METHOD zif_job~start_at_event.
 
   ENDMETHOD.
-
 ENDCLASS.
