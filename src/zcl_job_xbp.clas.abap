@@ -129,28 +129,50 @@ CLASS zcl_job_xbp DEFINITION
     ALIASES ty_us_repeating_period
       FOR zif_job~ty_us_repeating_period .
 
-    DATA xmi TYPE REF TO zcl_xmi READ-ONLY .
+    DATA xmi TYPE REF TO zif_xmi_bapi READ-ONLY .
     DATA extuser TYPE bapixmlogr-extuser READ-ONLY .
+
+    CLASS-METHODS xmi_logon
+      IMPORTING
+        !rfcdest    TYPE rfcdest OPTIONAL
+        !version    TYPE bapixmlogr-version DEFAULT '3.0'
+        !extcompany TYPE bapixmlogr-extcompany OPTIONAL
+        !extproduct TYPE bapixmlogr-extproduct OPTIONAL
+      RETURNING
+        VALUE(xmi)  TYPE REF TO zif_xmi_bapi
+      RAISING
+        zcx_xmi .
 
     METHODS constructor
       IMPORTING
-        !xmi     TYPE REF TO zcl_xmi
+        !xmi     TYPE REF TO zif_xmi_bapi
         !name    TYPE btcjob
         !extuser TYPE bapixmlogr-extuser
         !class   TYPE bapixmjob-jobclass OPTIONAL
       RAISING
         zcx_job .
-protected section.
+
+    CLASS-METHODS new
+      IMPORTING
+        xmi            TYPE REF TO zif_xmi_bapi
+        name           TYPE btcjob
+        class          TYPE btcjobclas OPTIONAL
+        check_jobclass TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(job)     TYPE REF TO zif_job
+      RAISING
+        zcx_job.
+
   PRIVATE SECTION.
 
     METHODS close
       RAISING
-        zcx_job_close .
+        zcx_job.
 ENDCLASS.
 
 
 
-CLASS ZCL_JOB_XBP IMPLEMENTATION.
+CLASS zcl_job_xbp IMPLEMENTATION.
 
 
   METHOD add_step_abap.
@@ -421,8 +443,59 @@ CLASS ZCL_JOB_XBP IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD zif_job~start_at_event.
 
   ENDMETHOD.
+
+  METHOD xmi_logon.
+
+    xmi = zcl_xmi=>logon(
+        rfcdest    = rfcdest
+        interface  = 'XBP'
+        version    = version
+        extcompany = extcompany
+        extproduct = extproduct ).
+
+  ENDMETHOD.
+
+  METHOD new.
+
+*    DATA: return TYPE bapiret2.
+*
+*    job = NEW zcl_job_xbp(
+*        xmi     =
+*        name    =
+*        extuser =
+**        class   =
+*    )
+**      CATCH zcx_job.  " ( ).
+*
+*    job->name = name.
+*    job->extuser = extuser.
+*    job->jclass = class.
+*
+*    CALL FUNCTION 'BAPI_XBP_JOB_OPEN'
+*      DESTINATION me->xmi->rfcdest
+*      EXPORTING
+*        jobname               = name
+*        external_user_name    = extuser
+*        jobclass              = class
+*      IMPORTING
+*        jobcount              = me->count
+*        return                = return
+*      EXCEPTIONS
+*        communication_failure = 1
+*        system_failure        = 2
+*        OTHERS                = 3.
+*
+*    IF sy-subrc <> 0.
+*      zcx_job=>raise( return ).
+*    ENDIF.
+*
+*    IF return IS NOT INITIAL.
+*      zcx_job=>raise( return ).
+*    ENDIF.
+
+  ENDMETHOD.
+
 ENDCLASS.
